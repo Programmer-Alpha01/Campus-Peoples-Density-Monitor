@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Density Monitor</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background: #f0f2f5;
+            color: #2d3436;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        h1 {
+            text-align: center;
+            color: #2d3436;
+            margin: 20px 0 40px;
+            font-size: 2.6rem;
+        }
+        .usage {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin: 0 auto 48px;
+            max-width: 860px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            line-height: 1.6;
+        }
+        .usage h2 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .buildings-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 28px;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+        .buildings-scroll::-webkit-scrollbar {
+            height: 10px;
+        }
+        .buildings-scroll::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 5px;
+        }
+        .building-card {
+            flex: 0 0 380px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .building-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+        }
+        .building-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .building-info {
+            padding: 20px 24px 28px;
+            text-align: center;
+        }
+        .building-info h3 {
+            margin: 0 0 16px;
+            font-size: 1.65rem;
+            color: #2c3e50;
+        }
+        .density-grid-container {
+            margin: 16px auto 20px;
+            width: 260px;
+        }
+        .density-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+        }
+        .grid-square {
+            aspect-ratio: 1;
+            background: #ebedef;
+            border-radius: 4px;
+        }
+        .grid-square.filled { background: #4caf50; }
+        .density-low    .filled { background: #66bb6a; }
+        .density-medium .filled { background: #ffca28; }
+        .density-high   .filled { background: #ef5350; }
+        .density-avg {
+            font-size: 2.1rem;
+            font-weight: bold;
+            margin: 8px 0 6px;
+        }
+        .view-details {
+            color: #1e88e5;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        footer {
+            text-align: center;
+            padding: 40px 0 60px;
+            color: #78909c;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Campus Density Monitor</h1>
+
+        <div class="usage">
+            <h2>How to Read</h2>
+            <p>This dashboard shows approximate real-time people density in campus buildings.</p>
+            <ul>
+                <li>More <strong style="color:#ef5350">red</strong> squares → higher occupancy</li>
+                <li>More <strong style="color:#66bb6a">green</strong> squares → lower occupancy</li>
+                <li>Click a building card to see floor-by-floor breakdown</li>
+            </ul>
+        </div>
+
+        <div class="buildings-scroll">
+            <!-- MC -->
+            <div class="building-card" onclick="location.href='mc.html'">
+                <img src="image/mc.jpg" alt="MC Building">
+                <div class="building-info">
+                    <h3>MC Building</h3>
+                    <div class="density-grid-container">
+                        <div class="density-grid" id="mc-grid"></div>
+                    </div>
+                    <div class="view-details">View details →</div>
+                </div>
+            </div>
+
+            <!-- JCC -->
+            <div class="building-card" onclick="location.href='jcc.html'">
+                <img src="image/jcc.jpg" alt="JCC Building">
+                <div class="building-info">
+                    <h3>JCC Building</h3>
+                    <div class="density-grid-container">
+                        <div class="density-grid" id="jcc-grid"></div>
+                    </div>
+                    <div class="view-details">View details →</div>
+                </div>
+            </div>
+
+            <!-- IOH -->
+            <div class="building-card" onclick="location.href='ioh.html'">
+                <img src="image/ioh.jpg" alt="IOH Building">
+                <div class="building-info">
+                    <h3>IOH Building</h3>
+                    <div class="density-grid-container">
+                        <div class="density-grid" id="ioh-grid"></div>
+                    </div>
+                    <div class="view-details">View details →</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            © 2026 Campus Density Monitor • Data refreshes continuously
+        </footer>
+    </div>
+
+    <script type="module">
+        import { campusData } from './js/all-buildings-data.js';
+
+        const TOTAL_SQUARES = 10;
+
+        function getDensityClass(avg) {
+            if (avg <= 3) return 'density-low';
+            if (avg <= 6) return 'density-medium';
+            return 'density-high';
+        }
+
+        function calculateAverage(blocks) {
+            let sum = 0, count = 0;
+            for (const block of blocks) {
+                for (const d of block.densities) {
+                    if (typeof d === 'number' && !isNaN(d)) {
+                        sum += d;
+                        count++;
+                    }
+                }
+            }
+            return count > 0 ? Math.round(sum / count) : 0;
+        }
+
+        function renderSummaryGrid(containerId, avgId, blocks) {
+            const avg = calculateAverage(blocks);
+            const container = document.getElementById(containerId);
+            const avgEl = document.getElementById(avgId);
+
+            if (!container) return;
+
+            const filled = Math.round((avg / 10) * TOTAL_SQUARES);
+            const cls = getDensityClass(avg);
+
+            let html = '';
+            for (let i = 0; i < TOTAL_SQUARES; i++) {
+                html += `<div class="grid-square ${i < filled ? 'filled' : ''}"></div>`;
+            }
+            container.innerHTML = html;
+            container.className = `density-grid ${cls}`;
+
+            if (avgEl) {
+                avgEl.textContent = avg;
+                avgEl.style.color = cls === 'density-low' ? '#4caf50' :
+                                   cls === 'density-medium' ? '#ffca28' : '#ef5350';
+            }
+        }
+
+        // Render all three buildings
+        renderSummaryGrid('mc-grid',  'mc-avg',  campusData.mc);
+        renderSummaryGrid('jcc-grid', 'jcc-avg', campusData.jcc);
+        renderSummaryGrid('ioh-grid', 'ioh-avg', campusData.ioh);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCC Building – Floor Density</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <nav>
+        <div  style="padding: 15px 20px;">
+            <a href="index.html" style="display:block; text-decoration:none;">
+                <img src="image/hkmu.png" alt="Back to Overview" style="width:42px;height:42px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.2s;">
+            </a>
+        </div>
+        <h2>Buildings</h2>
+        <ul>
+            <li><a href="mc.html"class="active">MC</a></li>
+            <li><a href="jcc.html" >JCC</a></li>
+            <li><a href="ioh.html">IOH</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="header">
+            <div style="display:flex; align-items:center;">
+                <h1>MC Building – Floor Density</h1>
+                <span class="last-update" id="lastUpdate">Last updated: just now</span>
+            </div>
+            <button class="info-btn" id="infoBtn">ⓘ</button>
+        </div>
+
+        <div id="blockContainer"></div>
+
+        <div class="controls">
+            <button class="arrow-btn" id="prevBtn">←</button>
+            <button class="arrow-btn" id="nextBtn">→</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-content">
+            <h3>Information</h3>
+            <p>This page shows people density per floor in each block.<br>
+            <strong>Green</strong> = low occupancy → <strong>Red</strong> = high occupancy<br>
+            Closed / disabled floors are shown in gray with "Disabled" label.</p>
+            <button class="close-btn" id="closeModal">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { campusData } from './js/all-buildings-data.js';
+        import { renderBlock, initLastUpdated, initModal } from './js/shared.js';
+
+        const blocksData = campusData.jcc;
+        let currentIndex = 0;
+        const container = document.getElementById('blockContainer');
+
+        function renderCurrent() {
+            renderBlock(container, blocksData[currentIndex], currentIndex, blocksData.length);
+        }
+
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCurrent();
+            }
+        };
+
+        document.getElementById('nextBtn').onclick = () => {
+            if (currentIndex < blocksData.length - 1) {
+                currentIndex++;
+                renderCurrent();
+            }
+        };
+
+        initLastUpdated();
+        initModal();
+        renderCurrent();
+    </script>
+</body>
+</html>
